@@ -1,10 +1,14 @@
 // webpack.config.js
-const path = require('path');
-const webpack = require('webpack');
+import path from 'path';
+import webpack from 'webpack';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const isProd = process.env.NODE_ENV === 'production';
 
-module.exports = ['widgetUI.js', 'widgetUI.min.js'].map(filename => ({
+export default ['widgetUI.js', 'widgetUI.min.js'].map(filename => ({
   mode: filename.includes('.min.') ? 'production' : 'development',
   entry: './src/WidgetUI.tsx',
   output: {
