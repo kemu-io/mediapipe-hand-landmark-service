@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Kemu Hub Service Preview</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+	
+	<script src="https://unpkg.com/react@latest/umd/react.production.min.js"></script>
+	<script src="https://unpkg.com/react-dom@latest/umd/react-dom.production.min.js"></script>
+	<script src="https://unpkg.com/@emotion/react@11.11.4/dist/emotion-react.umd.min.js"></script>
+	<script>
+		window.EmotionReact = emotionReact;
+		function SheetConstructor(options = {}) {
+			this.isSpeedy = !!options.speedy;
+			this.tags = []
+			this.ctr = 0
+			this.nonce = options.nonce
+			// key is the value of the data-emotion attribute, it's used to identify different sheets
+			this.key = options.key
+			this.container = options.container
+			this.prepend = options.prepend
+			this.insertionPoint = options.insertionPoint
+			this.before = null
+			this.cssRules = [];
+			this.flush = () => {
+				this.tags.forEach(tag => tag.parentNode.removeChild(tag));
+				this.tags = [];
+				this.cssRules = [];
+			};
+
+			this.insertRule = (rule, index) => {
+				this.cssRules.splice(index, 0, rule);
+				const styleElement = document.createElement('style');
+				styleElement.setAttribute('data-emotion', this.key);
+				styleElement.appendChild(document.createTextNode(rule));
+				if (this.prepend) {
+					container.insertBefore(styleElement, container.firstChild);
+				} else {
+					container.appendChild(styleElement);
+				}
+			};
+
+			this.insert = function(selector, serialized, sheet, shouldCache) {
+				const rule = `${selector} { ${serialized.styles} }`;
+				if (!this.inserted[serialized.name]) {
+					sheet.insertRule(rule, sheet.cssRules.length);
+					this.inserted[serialized.name] = true;
+				}
+			}
+		}
+		const createCache = ({ key, container, prepend }) => {
+			const cache = {
+				key,
+				container: container || document.head,
+				inserted: {},
+				registered: {},
+				sheet: new SheetConstructor(),
+				insert: function(selector, serialized, sheet, shouldCache) {
+					const rule = `${selector} { ${serialized.styles} }`;
+					if (!this.inserted[serialized.name]) {
+						sheet.insertRule(rule, sheet.cssRules.length);
+						this.inserted[serialized.name] = true;
+					}
+				}
+			};
+			return cache;
+		};
+		
+		window.EmotionCache = createCache
+	</script>
+	
+	<script src="/dist/WidgetUI.js"></script>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			font-size: 14px;
+			font-weight: 400;
+			font-family: 'Nunito', 'Segoe UI', arial;
+			color: #6c757d;
+		}
+		
+		h1, h2, h3, h4, h5, h6 {
+			font-family: 'Nunito', 'Segoe UI', arial;
+			margin-top: 0;
+		}
+		
+		* {
+			box-sizing: border-box;
+			font-family: "Nunito", 'Segoe UI', arial;
+		}
+		
+		.k-hs-wrap {
+			position: absolute;
+		}
+		
+		#canvas-container {
+			position: relative;
+			background-color: #fff;
+			transition: background-color 0.3s ease;
+			background-image: linear-gradient(to right, #0000000f 1px, transparent 1px), linear-gradient(to bottom, #0000000f 1px, transparent 1px);
+			background-size: 20px 20px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			width: 100%;
+		}
+	</style>
+</head>
+<body>
+	<div id="canvas-container">
+		
+	</div>
+	<script>
+		const fn = () => ({});
+		const container = document.getElementById('canvas-container');
+		// Load manifest from `/dist/manifest.json`
+		const fetchManifest = async (filePath) => {
+			try {
+				const response = await fetch(filePath);
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				const data = await response.json(); // Assuming the file is JSON
+				return data;
+			} catch (error) {
+				console.error("Could not fetch file:", error);
+			}
+		}
+		
+		const nI = () => console.log("Not implemented");
+
+		fetchManifest('/dist/manifest.json').then((manifest) => {
+			const d = { width: 300, height: 300 };
+			let dummyState = {};
+			WidgetUI.mountComponent(container, { 
+				destroy: fn,
+				repaintPorts: fn,
+				globalContext: {
+					getWidgetDimensions: () => ({ ...d }),
+					setWidgetDimensions: (dim) => { d.width = dim.width; d.height = dim.height; },
+					callProcessorHandler: nI,
+					utils: {
+						showChooseDirectoryDialog: nI,
+						showChooseFileDialog: nI,
+					},
+					setOutputs: (outputs) => {
+						console.log('Data will be sent to outputs:', outputs);
+					},
+					useWidgetState: () => {
+						return {
+							state: {...dummyState},
+							setState: (s) => dummyState = s,
+							getState: () => dummyState,
+						}
+					},
+					serviceOnline: true,
+					manifest,
+				},
+			});
+		});
+		
+		
+		
+		const makeDraggable = (element) => {
+			let isDragging = false;
+			let offsetX, offsetY;
+			
+			element.addEventListener('mousedown', (e) => {
+				if(!e.currentTarget?.classList.contains('k-hs-wrap')) return;
+				isDragging = true;
+				offsetX = e.clientX - element.getBoundingClientRect().left;
+				offsetY = e.clientY - element.getBoundingClientRect().top;
+				document.addEventListener('mousemove', onMouseMove);
+				document.addEventListener('mouseup', onMouseUp);
+			});
+			
+			const onMouseMove = (e) => {
+				if (!isDragging) return;
+				const parentRect = element.parentElement.getBoundingClientRect();
+				const elementRect = element.getBoundingClientRect();
+				
+				let newX = e.clientX - offsetX;
+				let newY = e.clientY - offsetY;
+				
+				// Ensure the element stays within the parent's boundaries
+				if (newX < 0) newX = 0;
+				if (newY < 0) newY = 0;
+				if (newX + elementRect.width > parentRect.width) {
+					newX = parentRect.width - elementRect.width;
+				}
+				if (newY + elementRect.height > parentRect.height) {
+					newY = parentRect.height - elementRect.height;
+				}
+				
+				element.style.left = newX + 'px';
+				element.style.top = newY + 'px';
+			}
+			
+			const onMouseUp = () => {
+				isDragging = false;
+				document.removeEventListener('mousemove', onMouseMove);
+				document.removeEventListener('mouseup', onMouseUp);
+			}
+		}
+		
+		const waitForElement = () => {
+			const draggableElement = document.querySelector('.k-hs-wrap');
+			if (draggableElement) {
+				makeDraggable(draggableElement);
+			} else {
+				setTimeout(waitForElement, 100);
+			}
+		}
+		
+		waitForElement();
+	</script>
+</body>
+</html>

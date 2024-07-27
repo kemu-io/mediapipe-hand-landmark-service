@@ -1,0 +1,26 @@
+{
+  "name": "test.kemu.io.mediapipe-hand-landmark",
+  "version": "0.0.1",
+  "title": "My test service",
+  "shortTitle": "Test",
+  "description": "Implements Mediapipe Hand Landmark Model",
+  "processor": "js",
+  "widgetUI": true,
+  "settingsUI": false,
+  "eventEmitter": false,
+  "ignoreParentEvents": false,
+  "svgIcon": "icon.svg",
+  "inputs": [
+    {
+      "name": "input",
+      "type": "Number"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "type": "Number"
+    }
+  ],
+  "color": "#ff7070"
+}
