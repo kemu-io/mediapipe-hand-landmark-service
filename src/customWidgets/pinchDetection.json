@@ -1,0 +1,103 @@
+{
+  "{#}f3qf": {
+    "id": "{#}f3qf",
+    "canvas": {
+      "position": {
+        "x": 888,
+        "y": 841
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}1IFhgSB",
+        "sourcePort": "{#}f3qf_innerOutput_inner-input-input1",
+        "targetPort": "{#}1IFhgSB_input_landmarks"
+      }
+    ],
+    "state": {
+      "description": "Detects if the index and thumb fingers are touching in 3D space.",
+      "inputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "input1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "output1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "name": "Pinch Detection",
+      "type": "custom",
+      "color": "#ff7070",
+      "icon": "american-sign-language-interpreting",
+      "canvasPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "settings": [
+        {
+          "type": "number",
+          "private": false,
+          "required": true,
+          "label": "Min Distance",
+          "variableName": "PinchDet.distance",
+          "config": {
+            "defaultValue": 0.3,
+            "placeholder": "0.4"
+          },
+          "customSettingField": true
+        }
+      ],
+      "protocolVersion": "2"
+    },
+    "type": "widgetGroup",
+    "variablesListener": {
+      "PinchDet.distance": 0
+    }
+  },
+  "{#}1IFhgSB": {
+    "id": "{#}1IFhgSB",
+    "canvas": {
+      "position": {
+        "x": 281,
+        "y": 276
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}f3qf",
+        "sourcePort": "{#}1IFhgSB_output_distance",
+        "targetPort": "{#}f3qf_innerInput_inner-output-output1"
+      },
+      {
+        "childId": "{#}f3qf",
+        "sourcePort": "{#}1IFhgSB_output_landmarks",
+        "targetPort": "{#}f3qf_innerInput_inner-output-output1"
+      }
+    ],
+    "state": {
+      "pauseExecution": false,
+      "autoPauseOnError": true,
+      "pages": {
+        "main": {
+          "code": "\nconst getWidgetInputs = () => [\n\t{ name: 'landmarks', type: DataType.JsonObj }\n];\n\nconst getWidgetOutputs = () => [\n\t{ name: 'landmarks', type: DataType.JsonObj },\n]\n\n\n/**\n * Detects the distance between the index and thumb fingers\n */\nconst processEvent = async (targetPort, sourceWidget, event) => {\n  const minDistance = Kemu.variable.get('PinchDet.distance', 0.4);\n  // const points = worldMode ? event.data.value.worldLandmarks : event.data.value.landmarks;\n  const points = event.data.value.landmarks;\n  \n  if(points.length > 0){\n    const distance = getPinchDistance(points);\n\t\tconst d = distance * 10;\n\t\t\n\t\tif(d > minDistance) return;\n\t\t\n\t\tawait sendToPort('landmarks', {\n\t\t\ttype: DataType.JsonObj,\n\t\t\t// World landmarks are measured in meters\n\t\t\tvalue: {\n\t\t\t  ...event.data.value,\n\t\t\t  pinch: d,\n\t\t\t}\n\t\t});\n  }\n}\n\nconst calculateDistance = (p1, p2) => {\n  return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2 + (p1.z - p2.z) ** 2);\n};\n\nconst getPinchDistance = (points) => {\n  const indexFinger = points[8];\n  const thumbFinger = points[4];\n  const distance = calculateDistance(thumbFinger, indexFinger);\n  return distance;\n};",
+          "language": "javascript",
+          "name": ""
+        }
+      },
+      "consoleVisible": false
+    },
+    "type": "script",
+    "groupId": "{#}f3qf"
+  }
+}
