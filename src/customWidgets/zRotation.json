@@ -1,0 +1,82 @@
+{
+  "{#}9NgF": {
+    "id": "{#}9NgF",
+    "canvas": {
+      "position": {
+        "x": 456,
+        "y": 656
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}knolCQr",
+        "sourcePort": "{#}9NgF_innerOutput_inner-input-input1",
+        "targetPort": "{#}knolCQr_input_landmarks"
+      }
+    ],
+    "state": {
+      "canvasPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "name": "Z-Rotation",
+      "description": "Calculates the hand's rotation angle in degrees around the Z axis.",
+      "inputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "input1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "index": 0,
+          "label": "angle",
+          "name": "output1",
+          "type": [
+            0
+          ]
+        }
+      ],
+      "settings": [],
+      "icon": "redo",
+      "color": "#ff7070",
+      "protocolVersion": "2",
+      "type": "custom"
+    },
+    "type": "widgetGroup"
+  },
+  "{#}knolCQr": {
+    "id": "{#}knolCQr",
+    "canvas": {
+      "position": {
+        "x": 292,
+        "y": 214
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}9NgF",
+        "sourcePort": "{#}knolCQr_output_angle",
+        "targetPort": "{#}9NgF_innerInput_inner-output-output1"
+      }
+    ],
+    "state": {
+      "pauseExecution": false,
+      "autoPauseOnError": true,
+      "pages": {
+        "main": {
+          "code": "\nconst getWidgetInputs = () => [\n\t{ name: 'landmarks', type: DataType.JsonObj }\n];\n\nconst getWidgetOutputs = () => [\n\t{ name: 'angle', type: DataType.Number },\n]\n\n\n/**\n * Calculates the rotation angle of the wrist over the Z axis, where 0 degrees\n * is 9 o'clock and 180 degrees is 3 o'clock\n */\nconst processEvent = async (targetPort, sourceWidget, event) => {\n  const points = event.data.value.worldLandmarks;\n  \n  if(points.length > 0){\n    const angle = calculateZAngle(points);\n\t\t\n\t\tawait sendToPort('angle', {\n\t\t\ttype: DataType.Number,\n\t\t\tvalue: angle * -1,\n\t\t});\n  }\n}\n\n\nconst calculateZAngle = (points) => {\n    const p0 = points[0];\n    const p9 = points[9];\n\n    const dx = p9.x - p0.x;\n    const dy = p9.y - p0.y;\n\n    const angle = Math.atan2(dy, dx) * (180 / Math.PI);\n\n    return angle;\n};",
+          "language": "javascript",
+          "name": ""
+        }
+      },
+      "consoleVisible": false
+    },
+    "type": "script",
+    "groupId": "{#}9NgF"
+  }
+}

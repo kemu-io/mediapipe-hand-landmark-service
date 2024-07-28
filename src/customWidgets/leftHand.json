@@ -1,0 +1,82 @@
+{
+  "{#}x9JNrmS": {
+    "id": "{#}x9JNrmS",
+    "canvas": {
+      "position": {
+        "x": 796,
+        "y": 143
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}SLqwizp",
+        "sourcePort": "{#}x9JNrmS_innerOutput_inner-input-input1",
+        "targetPort": "{#}SLqwizp_input_landmarks"
+      }
+    ],
+    "state": {
+      "canvasPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "name": "Left Hand",
+      "description": "Extracts the landmarks for the left hand. If the left hand is not detected, not output is generated.",
+      "inputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "input1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "output1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "settings": [],
+      "icon": "hand-point-left",
+      "color": "#ff7070",
+      "protocolVersion": "2",
+      "type": "custom"
+    },
+    "type": "widgetGroup"
+  },
+  "{#}SLqwizp": {
+    "id": "{#}SLqwizp",
+    "canvas": {
+      "position": {
+        "x": 301,
+        "y": 244
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}x9JNrmS",
+        "sourcePort": "{#}SLqwizp_output_left-hand",
+        "targetPort": "{#}x9JNrmS_innerInput_inner-output-output1"
+      }
+    ],
+    "state": {
+      "pauseExecution": false,
+      "autoPauseOnError": true,
+      "pages": {
+        "main": {
+          "code": "\nconst getWidgetInputs = () => [\n\t{ name: 'landmarks', type: DataType.JsonObj }\n];\n\nconst getWidgetOutputs = () => [\n\t{ name: 'left-hand', type: DataType.JsonObj }\n]\n\n/**\n * Only allows landmarks for the left hand to pass through\n */\nconst processEvent = async (targetPort, sourceWidget, event) => {\n  const data = event.data.value;\n  const handedness = data?.handedness;\n  \n  if(handedness.length){\n    // media pipe returns hands mixed up, so we filter for Right to find the actual Left hand\n    const handIndex = handedness.findIndex((hand) => hand[0]?.categoryName === 'Right');\n    if(handIndex !== -1){\n      return sendToPort('left-hand', {\n    \t\ttype: DataType.JsonObj,\n    \t\t// Recreate the event with only the filtered data\n    \t\tvalue: {\n    \t\t  image: data.image,\n    \t\t  handedness: data.handedness[handIndex],\n    \t\t  landmarks: data.landmarks[handIndex],\n    \t\t  worldLandmarks: data.worldLandmarks[handIndex],\n    \t\t}\n    \t});   \n    }\n  }\n}\n",
+          "language": "javascript",
+          "name": ""
+        }
+      },
+      "consoleVisible": false
+    },
+    "type": "script",
+    "groupId": "{#}x9JNrmS"
+  }
+}

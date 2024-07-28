@@ -25,8 +25,9 @@ const WidgetUI = (props: CustomWidgetProps) => {
     if(disabled) { return; }
     if(event.data.type === DataType.ImageData && model) {
       const imageData = event.data.value as ImageData;
-      const results = model?.detect(imageData);
-      console.log('results: ', results);
+      // const results = model?.detect(imageData);
+      const results = model?.detectForVideo(imageData, Date.now());
+
       if(results.landmarks.length && contextRef.current && canvasRef.current) {
         if(imageData.width !== canvasRef.current.width || imageData.height !== canvasRef.current.height) {
           canvasRef.current.width = imageData.width;
@@ -86,7 +87,10 @@ const WidgetUI = (props: CustomWidgetProps) => {
         modelAssetPath,
         delegate: 'GPU'
       },
-      runningMode: 'IMAGE',
+      minHandDetectionConfidence: 0.4,
+      minTrackingConfidence: 0.4,
+      minHandPresenceConfidence: 0.4,
+      runningMode: 'VIDEO',
       numHands: 2
     });
 

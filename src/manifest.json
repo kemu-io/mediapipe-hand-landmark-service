@@ -1,14 +1,19 @@
 {
   "name": "test.kemu.io.mediapipe-hand-landmark",
   "version": "0.0.1",
-  "title": "Hand Landmark",
+  "title": "MediaPipe Hand Landmark",
   "shortTitle": "Hands",
-  "description": "Implements Mediapipe Hand Landmark Model",
+  "description": "Implements MediaPipe Hand Landmark Model",
   "processor": "js",
   "widgetUI": true,
   "eventEmitter": false,
   "ignoreParentEvents": true,
   "svgIcon": "icon.svg",
+  "customWidgets": [
+    "customWidgets/leftHand.json",
+    "customWidgets/rightHand.json",
+    "customWidgets/zRotation.json"
+  ],
   "webOnly": true,
   "inputs": [
     {
