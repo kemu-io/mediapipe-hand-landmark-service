@@ -14,3 +14,8 @@ export const HAND_CONNECTIONS: Connection[] = [
   { start: 15, end: 16 }, { start: 13, end: 17 }, { start: 0, end: 17 },
   { start: 17, end: 18 }, { start: 18, end: 19 }, { start: 19, end: 20 }
 ];
+
+
+export const TaskFileName = 'vision_wasm_internal.task';
+export const WasamFileName = 'vision_wasm_internal.wasm';
+export const InternalJsFileName = 'vision_wasm_internal.js';

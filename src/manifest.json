@@ -18,12 +18,8 @@
   ],
   "outputs": [
     {
-      "name": "image",
-      "type": "ImageData"
-    },
-    {
       "name": "landmarks",
-      "type": "Array"
+      "type": "JsonObj"
     }
   ],
   "color": "#ff7070"

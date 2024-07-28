@@ -5,7 +5,7 @@
 
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"typescript.enablePromptUseWorkspaceTsdk": true,
-	"eslint.experimental.useFlatConfig": true,
+	"eslint.useFlatConfig": true,
 	"eslint.options": {
 		"ignorePatterns": ["dist"],
     "overrideConfigFile": "eslint.config.mjs"

@@ -5,23 +5,28 @@ import manifestJson from './manifest.json';
 import { DrawingUtils, FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 import { useDebouncedCallback } from 'use-debounce';
 import { DataType } from '@kemu-io/hs-types';
-import { HAND_CONNECTIONS } from './helpers/constants';
+import CircularProgress from '@mui/material/CircularProgress';
+import { HAND_CONNECTIONS, InternalJsFileName, TaskFileName, WasamFileName } from './helpers/constants';
+import { GetFilesResponse, UIActions } from './types/service_t';
+import { css } from '@emotion/react';
+import WidgetIcon from './components/WidgetIcon';
+import CustomSvg from './components/CustomSvg';
 
 const WidgetUI = (props: CustomWidgetProps) => {
-  const { setOutputs } =  props;
+  const { setOutputs, disabled, utils } =  props;
+  const { getCachedFile, cacheFile, getCacheFilePath } = utils.browser;
   const canvasRef = useRef<OffscreenCanvas>(null);
   const contextRef = useRef<OffscreenCanvasRenderingContext2D>(null);
   const drawingUtilsRef = useRef<DrawingUtils>(null);
-
   const [model, setModel] = useState<HandLandmarker | null>(null);
-  console.log('Rendered: ', props);
 
   useOnParentEvent(async (event) => {
     // console.log('Detecting...');
+    if(disabled) { return; }
     if(event.data.type === DataType.ImageData && model) {
       const imageData = event.data.value as ImageData;
       const results = model?.detect(imageData);
-
+      console.log('results: ', results);
       if(results.landmarks.length && contextRef.current && canvasRef.current) {
         if(imageData.width !== canvasRef.current.width || imageData.height !== canvasRef.current.height) {
           canvasRef.current.width = imageData.width;
@@ -39,26 +44,46 @@ const WidgetUI = (props: CustomWidgetProps) => {
         }
 
         const resultImageData = contextRef.current.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
-        await setOutputs([{
-          name: 'image',
-          type: DataType.ImageData,
-          value: resultImageData
-        }]);
+        await setOutputs([
+          {
+            name: 'landmarks',
+            type: DataType.JsonObj,
+            value: {
+              image: resultImageData,
+              landmarks: results.landmarks as any,
+              worldLandmarks: results.worldLandmarks as any,
+              handedness: results.handedness as any,
+            }
+          }
+        ]);
       }
     }
   });
 
   const loadModel = useDebouncedCallback(async () => {
-    console.log('Loading model');
-    const vision = await FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
-    );
+    // console.log('Loading model');
 
-    // TODO: Allow loading files from the processor
-    // Maybe just calling a processor function?
+    const taskResponse = await getCachedFile(TaskFileName);
+    const wasamResponse = await getCachedFile(WasamFileName);
+    const internalResponse = await getCachedFile(InternalJsFileName);
+
+    const missingFiles = !taskResponse || !wasamResponse || !internalResponse;
+
+    // Create a local cache for this files if not already cached
+    if(missingFiles) {
+      const { task, wasam, internalJs } = await props.callProcessorHandler<GetFilesResponse>(UIActions.GetFiles);
+      const ct = 'Content-Type';
+      await cacheFile(TaskFileName, task, new Headers({ [ct]: 'application/octet-stream' }));
+      await cacheFile(WasamFileName, wasam, new Headers({ [ct]: 'application/wasm' }));
+      await cacheFile(InternalJsFileName, internalJs, new Headers({ [ct]: 'application/javascript' }));
+    }
+
+    const cacheFilesPath = getCacheFilePath('').slice(0, -1); // Remove the trailing slash
+    const modelAssetPath = `${cacheFilesPath}/${TaskFileName}`;
+    const vision = await FilesetResolver.forVisionTasks(cacheFilesPath);
     const landmarker = await HandLandmarker.createFromOptions(vision, {
       baseOptions: {
-        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+        modelAssetPath,
         delegate: 'GPU'
       },
       runningMode: 'IMAGE',
@@ -68,10 +93,6 @@ const WidgetUI = (props: CustomWidgetProps) => {
     canvasRef.current = new OffscreenCanvas(640, 480);
     contextRef.current = canvasRef.current.getContext('2d');
     drawingUtilsRef.current = new DrawingUtils(contextRef.current);
-
-    // const landmarker = await HandLandmarker.createFromModelPath(vision,
-    //   'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'
-    // );
 
     setModel(landmarker);
   });
@@ -89,11 +110,21 @@ const WidgetUI = (props: CustomWidgetProps) => {
   }, []);
 
   return (
-    <WidgetContainer>
+    <WidgetContainer
+      css={css`
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+      `}
+    >
       {model ? (
-        <span>OK</span>
+        <CustomSvg css={{ width: 32, height: 32 }}>
+          <WidgetIcon />
+        </CustomSvg>
       ): (
-        <span>Loading</span>
+        <CircularProgress color="inherit" size={30} variant="indeterminate" />
       )}
     </WidgetContainer>
   );

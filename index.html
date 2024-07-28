@@ -131,7 +131,10 @@
 			}
 		}
 		
-		const nI = () => console.log("Not implemented");
+		const nI = () => {
+			console.log("Not implemented");
+			return {};
+		}
 
 		fetchManifest('/dist/manifest.json').then((manifest) => {
 			const d = { width: 300, height: 300 };
@@ -146,6 +149,11 @@
 					utils: {
 						showChooseDirectoryDialog: nI,
 						showChooseFileDialog: nI,
+						browser: {
+							getCachedFile: nI, 
+							cacheFile: nI, 
+							getCacheFilePath: nI,
+						}
 					},
 					setOutputs: (outputs) => {
 						console.log('Data will be sent to outputs:', outputs);
