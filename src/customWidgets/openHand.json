@@ -1,0 +1,103 @@
+{
+  "{#}kGDwscE": {
+    "id": "{#}kGDwscE",
+    "canvas": {
+      "position": {
+        "x": 840,
+        "y": 173
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}4DK9VuA",
+        "sourcePort": "{#}kGDwscE_innerOutput_inner-input-input1",
+        "targetPort": "{#}4DK9VuA_input_landmarks"
+      }
+    ],
+    "state": {
+      "description": "Detects if all the fingers in the hand are extended",
+      "inputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "input1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "output1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "name": "Open Hand Detection",
+      "type": "custom",
+      "color": "#ff7070",
+      "icon": "hand-paper",
+      "canvasPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "settings": [
+        {
+          "type": "number",
+          "private": false,
+          "required": true,
+          "label": "Min Distance",
+          "variableName": "OpenHand.distance",
+          "config": {
+            "defaultValue": 0.154,
+            "placeholder": "0.15"
+          },
+          "customSettingField": true
+        }
+      ],
+      "protocolVersion": "2"
+    },
+    "type": "widgetGroup",
+    "variablesListener": {
+      "OpenHand.distance": 0
+    }
+  },
+  "{#}4DK9VuA": {
+    "id": "{#}4DK9VuA",
+    "canvas": {
+      "position": {
+        "x": 281,
+        "y": 277
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}kGDwscE",
+        "sourcePort": "{#}4DK9VuA_output_distance",
+        "targetPort": "{#}kGDwscE_innerInput_inner-output-output1"
+      },
+      {
+        "childId": "{#}kGDwscE",
+        "sourcePort": "{#}4DK9VuA_output_landmarks",
+        "targetPort": "{#}kGDwscE_innerInput_inner-output-output1"
+      }
+    ],
+    "state": {
+      "pauseExecution": false,
+      "autoPauseOnError": true,
+      "pages": {
+        "main": {
+          "code": "\nconst getWidgetInputs = () => [\n\t{ name: 'landmarks', type: DataType.JsonObj }\n];\n\nconst getWidgetOutputs = () => [\n\t{ name: 'landmarks', type: DataType.JsonObj },\n]\n\n\n/**\n * Detects the distance between the index and thumb fingers\n */\nconst processEvent = async (targetPort, sourceWidget, event) => {\n  const minDistance = Kemu.variable.get('OpenHand.distance', 0.15);\n  // const points = worldMode ? event.data.value.worldLandmarks : event.data.value.landmarks;\n  const points = event.data.value.worldLandmarks;\n  \n  if(points.length > 0){\n    const isOpen = isHandOpen(points, minDistance);\n\t\tif(!isOpen) return;\n\t\t\n\t\tawait sendToPort('landmarks', {\n\t\t\ttype: DataType.JsonObj,\n\t\t\tvalue: {\n\t\t\t  ...event.data.value,\n\t\t\t}\n\t\t});\n  }\n}\n\nconst calculateDistance = (p1, p2) => {\n  return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2 + (p1.z - p2.z) ** 2);\n};\n\nconst isHandOpen = (points, threshold) => {\n    const wrist = points[0];\n    const thumbTip = points[4];\n    const indexTip = points[8];\n    const middleTip = points[12];\n    const ringTip = points[16];\n    const pinkyTip = points[20];\n\n    const distances = [\n        calculateDistance(wrist, thumbTip),\n        calculateDistance(wrist, indexTip),\n        calculateDistance(wrist, middleTip),\n        calculateDistance(wrist, ringTip),\n        calculateDistance(wrist, pinkyTip)\n    ];\n\n    // If the average distance is greater than the threshold, consider the hand as open\n    const averageDistance = distances.reduce((a, b) => a + b, 0) / distances.length;\n\n    return averageDistance > threshold;\n};",
+          "language": "javascript",
+          "name": ""
+        }
+      },
+      "consoleVisible": false
+    },
+    "type": "script",
+    "groupId": "{#}kGDwscE"
+  }
+}

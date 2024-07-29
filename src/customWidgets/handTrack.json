@@ -1,0 +1,169 @@
+{
+  "{#}UcrQ": {
+    "id": "{#}UcrQ",
+    "canvas": {
+      "position": {
+        "x": 773,
+        "y": 862
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}X5V1enK",
+        "sourcePort": "{#}UcrQ_innerOutput_inner-input-input1",
+        "targetPort": "{#}X5V1enK_input_landmarks"
+      }
+    ],
+    "state": {
+      "description": "Creates a bounding box around the hand and tracks it in space.",
+      "inputs": [
+        {
+          "index": 0,
+          "label": "landmarks",
+          "name": "input1",
+          "type": [
+            5
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "index": 0,
+          "label": "rect",
+          "name": "output1",
+          "type": [
+            9
+          ]
+        },
+        {
+          "name": "output2-BwwIRg",
+          "label": "image",
+          "type": [
+            7
+          ],
+          "index": 1
+        }
+      ],
+      "name": "Track Hand",
+      "type": "custom",
+      "color": "#ff7070",
+      "icon": "expand",
+      "canvasPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "settings": [
+        {
+          "type": "slider",
+          "private": false,
+          "required": true,
+          "label": "Padding",
+          "variableName": "TrackHan.padding",
+          "config": {
+            "step": 1,
+            "defaultValue": 37,
+            "max": 100,
+            "min": 0
+          },
+          "customSettingField": true
+        }
+      ],
+      "protocolVersion": "2"
+    },
+    "type": "widgetGroup",
+    "variablesListener": {
+      "TrackHan.padding": 0
+    }
+  },
+  "{#}X5V1enK": {
+    "id": "{#}X5V1enK",
+    "canvas": {
+      "position": {
+        "x": 206,
+        "y": 315
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}ylK5xJP",
+        "sourcePort": "{#}X5V1enK_output_image",
+        "targetPort": "{#}ylK5xJP_input_image"
+      },
+      {
+        "childId": "{#}nrsI",
+        "sourcePort": "{#}X5V1enK_output_rect",
+        "targetPort": "{#}nrsI_input_event"
+      }
+    ],
+    "state": {
+      "pauseExecution": false,
+      "autoPauseOnError": true,
+      "pages": {
+        "main": {
+          "code": "\nconst getWidgetInputs = () => [\n\t{ name: 'landmarks', type: DataType.JsonObj }\n];\n\nconst getWidgetOutputs = () => [\n\t{ name: 'image', type: DataType.ImageData },\n\t{ name: 'rect', type: DataType.Rect },\n]\n\n\n/**\n * Gets the bounding box around an image\n */\nconst processEvent = async (targetPort, sourceWidget, event) => {\n  const padding = Kemu.variable.get('TrackHan.padding', 0);\n  const points = event.data.value.landmarks;\n  const image = event.data.value.image;\n  \n  if(points.length > 0 && image){\n    const rect = calculateBoundingBox(points, image.width, image.height, padding);\n\n\t\tawait sendToPort('rect', {\n\t\t\ttype: DataType.Rect,\n\t\t\tvalue: rect\n\t\t});\n\t\t\n\t\tawait sendToPort('image', {\n\t\t\ttype: DataType.ImageData,\n\t\t\tvalue: image\n\t\t});\n  }\n}\n\nconst calculateBoundingBox = (points, imageWidth, imageHeight, padding = 0) => {\n    // Convert normalized coordinates to image space\n    const imagePoints = points.map(p => ({\n        x: p.x * imageWidth,\n        y: p.y * imageHeight,\n        z: p.z\n    }));\n\n    // Calculate the bounding box in image space\n    const minX = Math.min(...imagePoints.map(p => p.x));\n    const minY = Math.min(...imagePoints.map(p => p.y));\n    const maxX = Math.max(...imagePoints.map(p => p.x));\n    const maxY = Math.max(...imagePoints.map(p => p.y));\n\n    const width = maxX - minX + 2 * padding;\n    const height = maxY - minY + 2 * padding;\n    const top = minY - padding;\n    const left = minX - padding;\n\n    return { width, height, top, left };\n};",
+          "language": "javascript",
+          "name": ""
+        }
+      },
+      "consoleVisible": false
+    },
+    "type": "script",
+    "groupId": "{#}UcrQ"
+  },
+  "{#}ylK5xJP": {
+    "id": "{#}ylK5xJP",
+    "canvas": {
+      "position": {
+        "x": 445,
+        "y": 319
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}UcrQ",
+        "sourcePort": "{#}ylK5xJP_output_image",
+        "targetPort": "{#}UcrQ_innerInput_inner-output-output2-BwwIRg"
+      }
+    ],
+    "state": {
+      "offset": {
+        "height": 0,
+        "left": 0,
+        "top": 0,
+        "width": 0
+      },
+      "rect": {
+        "width": 121.70160675048828,
+        "height": 160.39489650726318,
+        "top": 518.4182386398315,
+        "left": 494.46907806396484
+      }
+    },
+    "type": "extractImage",
+    "groupId": "{#}UcrQ"
+  },
+  "{#}nrsI": {
+    "id": "{#}nrsI",
+    "canvas": {
+      "position": {
+        "x": 324,
+        "y": 443
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}ylK5xJP",
+        "sourcePort": "{#}nrsI_output_1",
+        "targetPort": "{#}ylK5xJP_input_rect"
+      },
+      {
+        "childId": "{#}UcrQ",
+        "sourcePort": "{#}nrsI_output_2",
+        "targetPort": "{#}UcrQ_innerInput_inner-output-output1"
+      }
+    ],
+    "state": {},
+    "type": "sequence",
+    "groupId": "{#}UcrQ"
+  }
+}

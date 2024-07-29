@@ -13,7 +13,9 @@
     "customWidgets/leftHand.json",
     "customWidgets/rightHand.json",
     "customWidgets/zRotation.json",
-    "customWidgets/pinchDetection.json"
+    "customWidgets/pinchDetection.json",
+    "customWidgets/openHand.json",
+    "customWidgets/handTrack.json"
   ],
   "webOnly": true,
   "inputs": [
