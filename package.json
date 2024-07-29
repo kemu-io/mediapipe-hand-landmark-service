@@ -1,7 +1,7 @@
 {
   "name": "test.kemu.io.mediapipe-hand-landmark",
   "version": "0.0.1",
-  "description": "Implements Mediapipe Hand Landmark Model",
+  "description": "Implements MediaPipe's Hand Landmark Model",
   "type": "module",
   "main": "dist/widgetUI.js",
   "files": [

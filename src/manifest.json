@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "title": "MediaPipe Hand Landmark",
   "shortTitle": "Hands",
-  "description": "Implements MediaPipe Hand Landmark Model",
+  "description": "Implements MediaPipe's Hand Landmark Model. This service only runs in Browser mode.",
   "processor": "js",
   "widgetUI": true,
   "eventEmitter": false,
