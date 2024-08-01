@@ -1,0 +1,83 @@
+{
+  "{#}WvsEhei": {
+    "id": "{#}WvsEhei",
+    "canvas": {
+      "position": {
+        "x": 1111,
+        "y": 593
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}hgjMu7d",
+        "sourcePort": "{#}WvsEhei_innerOutput_inner-input-input1",
+        "targetPort": "{#}hgjMu7d_input_value"
+      }
+    ],
+    "state": {
+      "description": "Clamps a rotation angle to a value between 0 and 180",
+      "inputs": [
+        {
+          "index": 0,
+          "label": "value",
+          "name": "input1",
+          "type": [
+            0
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "index": 0,
+          "label": "value",
+          "name": "output1",
+          "type": [
+            0
+          ]
+        }
+      ],
+      "name": "Clamp Angle",
+      "type": "custom",
+      "color": "#ff7070",
+      "icon": "greater-than-equal",
+      "canvasPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "settings": [],
+      "protocolVersion": "2"
+    },
+    "type": "widgetGroup",
+    "variablesListener": {}
+  },
+  "{#}hgjMu7d": {
+    "id": "{#}hgjMu7d",
+    "canvas": {
+      "position": {
+        "x": 266,
+        "y": 214
+      }
+    },
+    "children": [
+      {
+        "childId": "{#}WvsEhei",
+        "sourcePort": "{#}hgjMu7d_output_value",
+        "targetPort": "{#}WvsEhei_innerInput_inner-output-output1"
+      }
+    ],
+    "state": {
+      "pauseExecution": false,
+      "autoPauseOnError": true,
+      "pages": {
+        "main": {
+          "code": "\nconst getWidgetInputs = () => [\n\t{ name: 'value', type: DataType.Number }\n];\n\nconst getWidgetOutputs = () => [\n\t{ name: 'value', type: DataType.Number }\n]\n\nconst processEvent = async (targetPort, sourceWidget, event) => {\n  const eventVal = event.data.value;\n  let angle = eventVal;\n  \n  if(angle < 0) {\n    if(angle > -90) {\n      angle = 0;\n    } else {\n      angle = 180;\n    }\n  }\n  \n\treturn sendToPort('value', {\n\t\ttype: DataType.Number,\n\t\tvalue: angle,\n\t});\n}\n",
+          "language": "javascript",
+          "name": ""
+        }
+      },
+      "consoleVisible": false
+    },
+    "type": "script",
+    "groupId": "{#}WvsEhei"
+  }
+}

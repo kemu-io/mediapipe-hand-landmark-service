@@ -1,6 +1,6 @@
 {
   "name": "test.kemu.io.mediapipe-hand-landmark",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "title": "MediaPipe Hand Landmark",
   "shortTitle": "Hands",
   "description": "Implements MediaPipe's Hand Landmark Model. This service only runs in Browser mode.",
@@ -13,6 +13,7 @@
     "customWidgets/leftHand.json",
     "customWidgets/rightHand.json",
     "customWidgets/zRotation.json",
+    "customWidgets/clampAngle.json",
     "customWidgets/pinchDetection.json",
     "customWidgets/openHand.json",
     "customWidgets/handTrack.json"
